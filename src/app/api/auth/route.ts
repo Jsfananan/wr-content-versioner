@@ -1,13 +1,13 @@
-import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export async function POST(request: NextRequest): Promise<Response> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   let body: unknown;
 
   try {
     body = await request.json();
   } catch {
-    return Response.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
   if (
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     body === null ||
     typeof (body as Record<string, unknown>).password !== 'string'
   ) {
-    return Response.json({ error: 'Missing required field: password' }, { status: 400 });
+    return NextResponse.json({ error: 'Missing required field: password' }, { status: 400 });
   }
 
   const { password } = body as { password: string };
@@ -23,15 +23,15 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   if (!appPassword) {
     console.error('APP_PASSWORD environment variable is not set');
-    return Response.json({ error: 'Server configuration error' }, { status: 500 });
+    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
   }
 
   if (password !== appPassword) {
-    return Response.json({ error: 'Invalid password' }, { status: 401 });
+    return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
 
-  const cookieStore = await cookies();
-  cookieStore.set('wr_auth', 'authenticated', {
+  const response = NextResponse.json({ success: true }, { status: 200 });
+  response.cookies.set('wr_auth', 'authenticated', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
@@ -39,5 +39,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     path: '/',
   });
 
-  return Response.json({ success: true }, { status: 200 });
+  return response;
 }
