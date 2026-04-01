@@ -33,7 +33,10 @@ export default function OutputSection({
             key={version.officeId}
             officeName={version.officeName}
             directorName={version.directorName}
+            directorEmail={version.directorEmail}
             content={version.content}
+            adaptations={version.adaptations}
+            keepInMind={version.keepInMind}
             isLoading={false}
           />
         ))}
@@ -44,6 +47,8 @@ export default function OutputSection({
             officeName={officeId}
             directorName=""
             content=""
+            adaptations={[]}
+            keepInMind={[]}
             isLoading={true}
           />
         ))}

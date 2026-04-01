@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server';
 import { anthropic } from '@/lib/anthropic';
 import { BRAND_SYSTEM_PROMPT, getContentTypeInstructions } from '@/config/brand';
 import { getOfficeById } from '@/config/offices';
-import type { VersionRequest, VersionResult } from '@/types';
+import type { VersionRequest, VersionResult, Adaptation, KeepInMind } from '@/types';
 
 function buildOfficeSystemPrompt(officeId: string): string | null {
   const office = getOfficeById(officeId);
@@ -36,6 +36,38 @@ Always append this signature exactly as written at the end of the content — no
 ${office.signatureBlock}`;
 
   return officeBlock;
+}
+
+function parseClaudeResponse(
+  text: string
+): { content: string; adaptations: Adaptation[]; keepInMind: KeepInMind[] } {
+  // Strip markdown code fences if Claude wraps the JSON
+  let cleaned = text.trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+  }
+
+  try {
+    const parsed = JSON.parse(cleaned);
+    return {
+      content: typeof parsed.content === 'string' ? parsed.content : text,
+      adaptations: Array.isArray(parsed.adaptations) ? parsed.adaptations : [],
+      keepInMind: Array.isArray(parsed.keepInMind) ? parsed.keepInMind : [],
+    };
+  } catch {
+    // If JSON parsing fails, return the raw text with empty metadata
+    return {
+      content: text,
+      adaptations: [],
+      keepInMind: [
+        {
+          type: 'info' as const,
+          message:
+            'Structured analysis unavailable for this version. Review the content manually for brand consistency.',
+        },
+      ],
+    };
+  }
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -135,19 +167,24 @@ export async function POST(request: NextRequest): Promise<Response> {
 
       const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-6',
-        max_tokens: 2048,
+        max_tokens: 4096,
         system: systemPrompt,
         messages: [{ role: 'user', content: userMessage }],
       });
 
       const textBlock = response.content.find((block) => block.type === 'text');
-      const versionedContent = textBlock ? textBlock.text : '';
+      const rawText = textBlock ? textBlock.text : '';
+
+      const parsed = parseClaudeResponse(rawText);
 
       versions.push({
         officeId: office.id,
         officeName: office.name,
         directorName: office.director.name,
-        content: versionedContent,
+        directorEmail: office.director.email,
+        content: parsed.content,
+        adaptations: parsed.adaptations,
+        keepInMind: parsed.keepInMind,
       });
     }
 
