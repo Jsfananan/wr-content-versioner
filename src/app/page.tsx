@@ -76,9 +76,16 @@ export default function Home() {
     content.trim().length > 0 && selectedOffices.length > 0 && !isLoading;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col animate-fade-in">
       <Header />
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        <div className="flex flex-col gap-1">
+          <p className="text-sm text-gray-500 leading-relaxed">
+            Paste content once, get customized versions for each U.S. office — on brand and ready to send.
+          </p>
+        </div>
+
         <ContentInput
           content={content}
           onContentChange={setContent}
@@ -86,24 +93,36 @@ export default function Home() {
           onContentTypeChange={setContentType}
           additionalInstructions={additionalInstructions}
           onAdditionalInstructionsChange={setAdditionalInstructions}
+          disabled={isLoading}
         />
 
         <OfficeSelector
           selectedOffices={selectedOffices}
           onSelectionChange={setSelectedOffices}
+          disabled={isLoading}
         />
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-            {error}
+          <div className="flex items-start justify-between gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm animate-slide-up">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => setError("")}
+              className="shrink-0 text-red-400 hover:text-red-600 transition-colors focus:outline-none"
+              aria-label="Dismiss error"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         )}
 
-        <div className="flex justify-center">
+        <div className="flex justify-center pt-1">
           <button
             onClick={handleGenerate}
             disabled={!canGenerate}
-            className="px-8 py-3 bg-[#009DDC] text-white font-medium rounded-lg hover:bg-[#0080b3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-base"
+            className="px-10 py-3.5 bg-[#009DDC] text-white font-semibold rounded-lg hover:bg-[#0080b3] focus:outline-none focus:ring-2 focus:ring-[#009DDC] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm shadow-md hover:shadow-lg active:scale-[0.98]"
           >
             {isLoading ? "Generating Versions..." : "Generate Versions"}
           </button>
@@ -116,7 +135,7 @@ export default function Home() {
         />
       </main>
 
-      <footer className="text-center text-xs text-gray-400 py-4">
+      <footer className="text-center text-xs text-gray-400 py-5 border-t border-gray-200">
         World Relief Content Versioner &middot; Internal Tool
       </footer>
     </div>

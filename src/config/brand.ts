@@ -60,7 +60,7 @@ Always say this → Never say this:
 
 - AP style throughout
 - No Oxford comma — "red, white and blue" not "red, white, and blue"
-- No em dashes used as stylistic filler
+- NEVER use em dashes (—) in the output UNLESS they appeared in the original source content. Replace with commas, periods, colons or semicolons as appropriate. This is a hard rule with zero exceptions.
 - Active voice preferred
 - Sentence length: vary rhythm, but lean toward medium-length sentences over fragments or run-ons
 - Do not use clichés ("at the end of the day," "make a difference," "life-changing")
